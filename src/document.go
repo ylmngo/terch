@@ -72,7 +72,7 @@ func (app *Application) InsertPDF(f *os.File) (int, error) {
 // }
 
 func (app *Application) GetAllFromDB() ([]Document, error) {
-	rows, err := app.Db.Query(`SELECT * FROM docs`)
+	rows, err := app.Db.Query(`SELECT id, name, docvec FROM docs`)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get rows from database: %v", err)
 	}
@@ -80,8 +80,8 @@ func (app *Application) GetAllFromDB() ([]Document, error) {
 
 	res := make([]Document, 0)
 
+	d := Document{}
 	for rows.Next() {
-		d := Document{}
 		if err := rows.Scan(&d.Id, &d.Name, pq.Array(&d.Vec)); err != nil {
 			fmt.Printf("Unable to scan rows to document struct: %v\n", err)
 			continue

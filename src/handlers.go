@@ -10,9 +10,15 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"terch/utils"
 )
 
 // Pre parse the templates and then execute them
+
+var (
+	searchTempl *template.Template = utils.ParseTemplate("templates/search.html")
+	indexTempl  *template.Template = utils.ParseTemplate("templates/index.html")
+)
 
 func (app *Application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	vals, err := url.ParseQuery(r.URL.RawQuery)
@@ -34,13 +40,7 @@ func (app *Application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("templates/search.html")
-	if err != nil {
-		log.Printf("Unable to get file: %s, err: %v\n", "templates/search.html", err)
-		return
-	}
-
-	if err := tmpl.Execute(w, res); err != nil {
+	if err := searchTempl.Execute(w, res); err != nil {
 		log.Printf("Unable to execute template file: %s, err: %v\n", "templates/search.html", err)
 		return
 	}
@@ -48,13 +48,8 @@ func (app *Application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/index.html")
-	if err != nil {
-		log.Printf("Unable to get file: %s, err: %v\n", "templates/index.html", err)
-		return
-	}
 
-	if err := tmpl.Execute(w, nil); err != nil {
+	if err := indexTempl.Execute(w, nil); err != nil {
 		log.Printf("Unable to execute template file: %s, err: %v\n", "templates/index.html", err)
 		return
 	}

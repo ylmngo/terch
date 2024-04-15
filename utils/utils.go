@@ -4,11 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"html/template"
 	"io"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"gonum.org/v1/gonum/floats"
 )
@@ -72,10 +74,9 @@ func NCalcDocVec(buf *bytes.Buffer) []float64 {
 // Try removing regexp
 func CalcQueryVec(query string) []float64 {
 	res := make([]float64, 10)
-	re := regexp.MustCompile(`[^\d\p{Latin}]`)
 	words := strings.Split(query, " ")
 	for _, word := range words {
-		op := strings.ToLower(re.ReplaceAllString(word, ""))
+		op := strings.ToLower(sanitizeWord(word))
 		vec, ok := WordVec[op]
 		if !ok {
 			continue
@@ -98,6 +99,17 @@ func GetVec(word string) ([]float64, bool) {
 	return x, ok
 }
 
+func sanitizeWord(word string) string {
+	var builder strings.Builder
+	for _, s := range word {
+		if !unicode.IsLetter(s) {
+			continue
+		}
+		builder.WriteRune(s)
+	}
+	return builder.String()
+}
+
 func parseLine(line string) (string, []float64, error) {
 	parts := strings.Split(line, " ")
 	word := parts[0]
@@ -111,4 +123,9 @@ func parseLine(line string) (string, []float64, error) {
 		vec[i-1] = val
 	}
 	return word, vec, nil
+}
+
+func ParseTemplate(path string) *template.Template {
+	tmpl, _ := template.ParseFiles(path)
+	return tmpl
 }

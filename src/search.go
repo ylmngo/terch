@@ -6,12 +6,12 @@ import (
 )
 
 func (app *Application) Search(query string) ([]DocumentResult, error) {
-	res := make([]DocumentResult, 0)
-
 	docs, err := app.GetAllFromDB()
 	if err != nil {
 		return nil, err
 	}
+
+	res := make([]DocumentResult, 0, len(docs))
 
 	a := utils.CalcQueryVec(query)
 	for _, d := range docs {
