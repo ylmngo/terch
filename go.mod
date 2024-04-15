@@ -1,13 +1,11 @@
 module terch
 
-go 1.21.0
-
-require github.com/ynqa/wego v0.0.0-20230402162916-bce06112d2fe
+go 1.22.0
 
 require (
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/spf13/cobra v1.1.1 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
+	github.com/google/go-tika v0.3.0
+	github.com/lib/pq v1.10.9
+	gonum.org/v1/gonum v0.15.0
 )
+
+require golang.org/x/net v0.24.0 // indirect

@@ -1,50 +1,72 @@
 package main
 
 import (
-	"bufio"
+	"context"
+	"database/sql"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
-	"strconv"
-	"strings"
+	"terch/utils"
+
+	_ "net/http/pprof"
+
+	_ "github.com/lib/pq"
+
+	"github.com/google/go-tika/tika"
 )
 
-var WordVector map[string][]float64 = make(map[string][]float64, 1)
+type Application struct {
+	Db      *sql.DB
+	TikaCli *tika.Client
+	Router  *http.ServeMux
+}
 
-const BUFFER_SIZE int = 2048 * 2048
+const DSN string = "postgres://terch:freeroam@localhost/terchdb?sslmode=disable"
 
 func main() {
-	file, err := os.Open("oup_prc.txt")
+	file, err := os.Open("oup.txt")
 	if err != nil {
-		fmt.Printf("Unable to open word vector file: %v\n", err)
-		return
+		log.Fatalf("Unable to find embeddings file: %v\n", err)
 	}
 	defer file.Close()
-	initMap(file)
-}
 
-func initMap(f *os.File) {
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := scanner.Text()
-		word, vec, err := parseLine(line)
-		if err != nil {
-			continue
-		}
-		WordVector[word] = vec
+	app := InitApp(file, DSN)
+	app.Router = app.Routes()
+
+	srv := &http.Server{
+		Addr:    ":8000",
+		Handler: app.Router,
+	}
+	if err := srv.ListenAndServe(); err != nil {
+		log.Fatalf("Server Failure: %v\n", err)
 	}
 }
 
-func parseLine(line string) (string, []float64, error) {
-	parts := strings.Split(line, " ")
-	word := parts[0]
-	vec := make([]float64, 10)
-	for i := 1; i < 11; i++ {
-		val, err := strconv.ParseFloat(parts[i], 64)
-		if err != nil {
-			fmt.Printf("Unable to parse floating point value: %v\n", err)
-			return "", nil, err
-		}
-		vec[i-1] = val
+func InitApp(file *os.File, dsn string) *Application {
+	app := &Application{}
+
+	utils.InitMap(file)
+	app.ConnectDB(dsn)
+	app.TikaCli = utils.InitTikaClient("http://localhost:9998")
+
+	return app
+}
+
+func (app *Application) ConnectDB(DSN string) {
+	db, err := sql.Open("postgres", DSN)
+	if err != nil {
+		fmt.Printf("Unable to connect to database: %v\n", err)
+		return
 	}
-	return word, vec, nil
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := db.PingContext(ctx); err != nil {
+		fmt.Printf("Unable to Ping to databse: %v\n", err)
+		return
+	}
+
+	app.Db = db
 }

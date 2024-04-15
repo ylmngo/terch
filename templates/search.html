@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .inputGroup {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 1em 0 1em 0;
+            max-width: 35%;
+            position: relative;
+            padding-left: 25%;
+        }
+
+        .inputGroup input {
+            font-size: 100%;
+            padding: 0.8em;
+            outline: none;
+            border: 2px solid rgb(200, 200, 200);
+            background-color: transparent;
+            border-radius: 20px;
+            width: 100%;
+        }
+
+        .inputGroup label {
+            font-size: 100%;
+            position: absolute;
+            left: 0;
+            padding: 0.8em;
+            margin-left: 0.5em;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            color: rgb(100, 100, 100);
+        }
+
+        .inputGroup :is(input:focus, input:valid)~label {
+            transform: translateY(-50%) scale(.9);
+            margin: 0em;
+            margin-left: 1.3em;
+            padding: 0.4em;
+            background-color: #e8e8e8;
+        }
+
+        .inputGroup :is(input:focus, input:valid) {
+            border-color: rgb(150, 150, 200);
+        }
+    </style>
+</head>
+<body>
+    <form method="GET" action="/search" >
+        <div class="inputGroup">
+            <input type="text" name="query" autocomplete="off" placeholder="Search Documents...">
+            <input type="submit" hidden />
+        </div>
+    </form>
+
+    {{ range $file := .}}
+        <a href="document/{{$file.DocId}}">{{$file.Name}}</a><br>
+    {{ end }}
+    <!-- <div class="input-container">
+        <input type="text" name="text" class="input" placeholder="search...">
+        <span class="icon"> 
+          <svg width="19px" height="19px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path opacity="1" d="M14 5H20" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path opacity="1" d="M14 8H17" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M21 11.5C21 16.75 16.75 21 11.5 21C6.25 21 2 16.75 2 11.5C2 6.25 6.25 2 11.5 2" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path> <path opacity="1" d="M22 22L20 20" stroke="#000" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+        </span>
+      </div> -->
+</body>
