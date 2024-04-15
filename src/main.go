@@ -1,9 +1,6 @@
 package main
 
 import (
-	"context"
-	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,13 +8,14 @@ import (
 
 	_ "net/http/pprof"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 
 	"github.com/google/go-tika/tika"
 )
 
 type Application struct {
-	Db      *sql.DB
+	DbPool  *pgxpool.Pool
 	TikaCli *tika.Client
 	Router  *http.ServeMux
 }
@@ -32,7 +30,7 @@ func main() {
 	defer file.Close()
 
 	app := InitApp(file, DSN)
-	app.Router = app.Routes()
+	defer app.DbPool.Close()
 
 	srv := &http.Server{
 		Addr:    ":8000",
@@ -47,26 +45,9 @@ func InitApp(file *os.File, dsn string) *Application {
 	app := &Application{}
 
 	utils.InitMap(file)
-	app.ConnectDB(dsn)
+	app.DbPool, _ = utils.ConnectDBPool(dsn)
+	app.Router = app.Routes()
 	app.TikaCli = utils.InitTikaClient("http://localhost:9998")
 
 	return app
-}
-
-func (app *Application) ConnectDB(DSN string) {
-	db, err := sql.Open("postgres", DSN)
-	if err != nil {
-		fmt.Printf("Unable to connect to database: %v\n", err)
-		return
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	if err := db.PingContext(ctx); err != nil {
-		fmt.Printf("Unable to Ping to databse: %v\n", err)
-		return
-	}
-
-	app.Db = db
 }

@@ -3,6 +3,7 @@ package utils
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"html/template"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"gonum.org/v1/gonum/floats"
 )
 
@@ -44,6 +46,7 @@ func CalcDocVec(f *os.File) []float64 {
 		floats.AddTo(res, res, vec)
 	}
 
+	fmt.Println(res)
 	return res
 }
 
@@ -75,8 +78,9 @@ func NCalcDocVec(buf *bytes.Buffer) []float64 {
 func CalcQueryVec(query string) []float64 {
 	res := make([]float64, 10)
 	words := strings.Split(query, " ")
+	re := regexp.MustCompile(`[^\d\p{Latin}]`)
 	for _, word := range words {
-		op := strings.ToLower(sanitizeWord(word))
+		op := strings.ToLower(re.ReplaceAllString(word, ""))
 		vec, ok := WordVec[op]
 		if !ok {
 			continue
@@ -128,4 +132,30 @@ func parseLine(line string) (string, []float64, error) {
 func ParseTemplate(path string) *template.Template {
 	tmpl, _ := template.ParseFiles(path)
 	return tmpl
+}
+
+func ConnectDBPool(DSN string) (*pgxpool.Pool, error) {
+	pool, err := pgxpool.New(context.Background(), DSN)
+	if err != nil {
+		return pool, nil
+	}
+	if err := pool.Ping(context.Background()); err != nil {
+		return nil, err
+	}
+
+	return pool, nil
+
+	// db, err := sql.Open("postgres", DSN)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// ctx, cancel := context.WithCancel(context.Background())
+	// defer cancel()
+
+	// if err := db.PingContext(ctx); err != nil {
+	// 	return nil, err
+	// }
+
+	// return db, nil
 }
