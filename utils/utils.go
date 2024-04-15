@@ -8,7 +8,6 @@ import (
 	"html/template"
 	"io"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -52,7 +51,6 @@ func CalcDocVec(f *os.File) []float64 {
 
 func NCalcDocVec(buf *bytes.Buffer) []float64 {
 	rd := bufio.NewReader(buf)
-	re := regexp.MustCompile(`[^\d\p{Latin}]`)
 	rs := make([]float64, 10)
 	for {
 		wd, err := rd.ReadString(byte(' '))
@@ -62,7 +60,7 @@ func NCalcDocVec(buf *bytes.Buffer) []float64 {
 		if err != nil {
 			return nil
 		}
-		op := strings.ToLower(re.ReplaceAllString(wd, ""))
+		op := strings.ToLower(sanitizeWord(wd))
 		vec, ok := WordVec[op]
 
 		if !ok {
@@ -78,9 +76,8 @@ func NCalcDocVec(buf *bytes.Buffer) []float64 {
 func CalcQueryVec(query string) []float64 {
 	res := make([]float64, 10)
 	words := strings.Split(query, " ")
-	re := regexp.MustCompile(`[^\d\p{Latin}]`)
 	for _, word := range words {
-		op := strings.ToLower(re.ReplaceAllString(word, ""))
+		op := strings.ToLower(sanitizeWord(word))
 		vec, ok := WordVec[op]
 		if !ok {
 			continue
