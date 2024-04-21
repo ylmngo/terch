@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
-	"strconv"
 	"terch/utils"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -25,40 +25,23 @@ type DocumentResult struct {
 }
 
 // Change it such that it returns an id, the calling function shall be responsible for creating upload file
-func (app *Application) Insert(f *os.File) error {
+func (app *Application) Insert(in io.Reader, name string) int {
 	var id int
-
-	vec := utils.CalcDocVec(f)
-
-	app.DbPool.QueryRow(context.Background(), `INSERT into docs (name, docvec) VALUES ($1, $2) RETURNING id`, f.Name(), pq.Array(&vec)).Scan(&id)
-
-	file, err := os.Create(fmt.Sprintf("uploads/%s.txt", strconv.Itoa(id)))
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return nil
+	vec := utils.CalcDocVec(in)
+	app.DbPool.QueryRow(context.Background(), `INSERT into docs (name, docvec) VALUES ($1, $2) RETURNING id`, name, pq.Array(&vec)).Scan(&id)
+	return id
 }
 
 // Inserts Name of the file and it's document vector to database and saves it to disk
-// Change it such that it returns an id, the calling function shall be responsible for creating upload file
-
-func (app *Application) InsertPDF(f *os.File) (int, error) {
+func (app *Application) InsertDoc(file *os.File, name string) (int, error) {
 	var id int
 
-	doc, err := utils.CreateDocument(f, app.TikaCli)
+	doc, err := utils.CreateDocument(file, app.TikaCli, name)
 	if err != nil {
 		return 0, err
 	}
 
 	app.DbPool.QueryRow(context.Background(), `INSERT into docs (name, docvec) VALUES ($1, $2) RETURNING id`, doc.Name, pq.Array(doc.Vec)).Scan(&id)
-
-	file, err := os.Create(fmt.Sprintf("uploads/%s.txt", strconv.Itoa(id)))
-	if err != nil {
-		return 0, err
-	}
-	defer file.Close()
 
 	return id, nil
 }

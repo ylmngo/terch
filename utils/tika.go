@@ -27,17 +27,18 @@ func InitTikaClient(url string) *tika.Client {
 }
 
 // TODO: Remove 'uploads/' from File names
-func CreateDocument(file *os.File, cli *tika.Client) (*Document, error) {
+func CreateDocument(f *os.File, cli *tika.Client, name string) (*Document, error) {
 	doc := &Document{}
 	doc.buf = bytes.NewBuffer(nil)
 	doc.Vec = make([]float64, 10)
-	doc.Name = file.Name()
+	doc.Name = name
 
-	res, err := cli.Parse(context.Background(), file)
+	res, err := cli.Parse(context.Background(), f)
 	if err != nil {
 		fmt.Printf("Unable to parse file: %v\n", err)
 		return nil, err
 	}
+
 	d := xml.NewDecoder(strings.NewReader(res))
 	d.Strict = false
 	for {

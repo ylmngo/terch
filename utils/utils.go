@@ -30,10 +30,11 @@ func InitMap(f *os.File) {
 	}
 }
 
-func CalcDocVec(f *os.File) []float64 {
+func CalcDocVec(in io.Reader) []float64 {
 	res := make([]float64, 10) // an array of 10 floats, 10 is the dimension of the embeddings
+	var vec []float64
 
-	scanner := bufio.NewScanner(f)
+	scanner := bufio.NewScanner(in)
 	for scanner.Scan() {
 		line := scanner.Text()
 
@@ -41,11 +42,10 @@ func CalcDocVec(f *os.File) []float64 {
 			continue
 		}
 
-		vec := CalcQueryVec(line)
+		vec = CalcQueryVec(line)
 		floats.AddTo(res, res, vec)
 	}
 
-	fmt.Println(res)
 	return res
 }
 
@@ -84,7 +84,6 @@ func CalcQueryVec(query string) []float64 {
 		}
 		floats.AddTo(res, res, vec)
 	}
-
 	return res
 }
 
