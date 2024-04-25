@@ -8,6 +8,8 @@ import (
 func (app *Application) Routes() *http.ServeMux {
 	router := &http.ServeMux{}
 
+	router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+
 	// for profiling
 	router.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
 	router.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))

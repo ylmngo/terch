@@ -48,7 +48,13 @@ func (app *Application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	if err := indexTempl.Execute(w, nil); err != nil {
+	docs, err := app.GetAllFromDB()
+	if err != nil {
+		log.Printf("Unable to retrieve from database: %v\n", err)
+		return
+	}
+
+	if err := indexTempl.Execute(w, docs); err != nil {
 		log.Printf("Unable to execute template file: %s, err: %v\n", "templates/index.html", err)
 		return
 	}
@@ -76,19 +82,13 @@ func (app *Application) ViewDocHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	buf := make([]byte, 512)
-	if _, err = file.Read(buf); err != nil {
-		log.Printf("Unable to read to buf from file: uploads/%d\n, err: %v\n", id, err)
-		return
-	}
-
 	data, err := io.ReadAll(file)
 	if err != nil {
 		log.Printf("Unable to read contents of file: uploads/%d, err: %v\n", id, err)
 		return
 	}
 
-	ctype := http.DetectContentType(buf)
+	ctype := http.DetectContentType(data)
 	w.Header().Add("Content-Type", ctype)
 	w.Write(data)
 }
@@ -154,5 +154,5 @@ func (app *Application) UploadDocHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// http.Redirect(w, r, "/", http.StatusAccepted)
+	http.Redirect(w, r, "/", http.StatusAccepted)
 }
