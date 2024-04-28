@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	"terch/utils"
 
 	_ "net/http/pprof"
@@ -18,6 +19,10 @@ type Application struct {
 	DbPool  *pgxpool.Pool
 	TikaCli *tika.Client
 	Router  *http.ServeMux
+	Store   struct {
+		sync.Mutex
+		data map[int]Document
+	}
 }
 
 const DSN string = "postgres://terch:freeroam@localhost/terchdb?sslmode=disable"
