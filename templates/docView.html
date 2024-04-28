@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script crossorigin src="https://unpkg.com/jszip/dist/jszip.js"></script>
+    <script src="../static/node_modules/docx-preview/dist/docx-preview.js"></script>
+</head>
+<body>
+    <div id="container"></div>
+
+    <script>
+        var container = document.getElementById("container")
+        const docxOptions = Object.assign(docx.defaultOptions, { 
+           debug: true, 
+           experimental: true 
+        })
+        
+        // convert the base64 encoded string to an array buffer and then to a blob to be rendered by the docx.renderAsync function  
+        var dataString = `{{.}}` 
+        var dataByte = Uint8Array.from(atob(dataString), c => c.charCodeAt(0))
+        var fileBlob = new Blob([dataByte], {
+            type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
+        docx.renderAsync(fileBlob, container, null, docxOptions)
+    </script>
+</body>
+</html>

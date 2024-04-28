@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"io"
@@ -18,8 +19,10 @@ import (
 var (
 	searchTempl *template.Template = utils.ParseTemplate("templates/search.html")
 	indexTempl  *template.Template = utils.ParseTemplate("templates/index.html")
+	docTempl    *template.Template = utils.ParseTemplate("templates/docView.html")
 )
 
+// Evalutes the search query and displays the 5 closest results
 func (app *Application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	vals, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
@@ -88,9 +91,17 @@ func (app *Application) ViewDocHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctype := http.DetectContentType(data)
-	w.Header().Add("Content-Type", ctype)
-	w.Write(data)
+	if ext == ".docx" {
+		dataString := base64.StdEncoding.EncodeToString(data)
+		if err := docTempl.Execute(w, dataString); err != nil {
+			fmt.Printf("err: %v\n", err)
+			return
+		}
+	} else {
+		ctype := http.DetectContentType(data)
+		w.Header().Add("Content-Type", ctype)
+		w.Write(data)
+	}
 }
 
 func (app *Application) UploadDocHandler(w http.ResponseWriter, r *http.Request) {
