@@ -6,10 +6,7 @@ import (
 )
 
 func (app *Application) Search(query string) ([]DocumentResult, error) {
-	docs, err := app.GetAllFromDB()
-	if err != nil {
-		return nil, err
-	}
+	docs := app.GetAlls()
 
 	res := make([]DocumentResult, 0, len(docs))
 

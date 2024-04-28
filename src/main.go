@@ -17,12 +17,12 @@ import (
 
 type Application struct {
 	DbPool  *pgxpool.Pool
-	TikaCli *tika.Client
+	TikaCli *tika.Client // TikaCli is used to extract words from pdf/docx files
 	Router  *http.ServeMux
 	Store   struct {
 		sync.Mutex
 		data map[int]Document
-	}
+	} // In-Memory Store for caching database results
 }
 
 const DSN string = "postgres://terch:freeroam@localhost/terchdb?sslmode=disable"
@@ -36,6 +36,7 @@ func main() {
 
 	app := InitApp(file, DSN)
 	defer app.DbPool.Close()
+	go app.RestoreDocuments()
 
 	srv := &http.Server{
 		Addr:    ":8000",
@@ -53,6 +54,7 @@ func InitApp(file *os.File, dsn string) *Application {
 	app.DbPool, _ = utils.ConnectDBPool(dsn)
 	app.Router = app.Routes()
 	app.TikaCli = utils.InitTikaClient("http://localhost:9998")
+	app.StoreDocuments()
 
 	return app
 }

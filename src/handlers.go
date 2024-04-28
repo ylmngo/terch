@@ -51,11 +51,7 @@ func (app *Application) SearchHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) IndexHandler(w http.ResponseWriter, r *http.Request) {
-	docs, err := app.GetAllFromDB()
-	if err != nil {
-		log.Printf("Unable to retrieve from database: %v\n", err)
-		return
-	}
+	docs := app.GetAlls()
 
 	if err := indexTempl.Execute(w, docs); err != nil {
 		log.Printf("Unable to execute template file: %s, err: %v\n", "templates/index.html", err)
